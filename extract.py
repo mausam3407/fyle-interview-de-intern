@@ -1,6 +1,7 @@
 # Your imports go here
 import logging
-
+import json
+import os
 logger = logging.getLogger(__name__)
 
 '''
@@ -17,5 +18,29 @@ def extract_amount(dirpath: str) -> float:
 
     logger.info('extract_amount called for dir %s', dirpath)
     # your logic goes here
-
-    return 0.0
+    file = os.path.join(dirpath, 'ocr.json')
+    with open(file,mode='r') as f:
+        data = json.load(f)
+    blocks = data['Blocks']
+    amount = []
+    for block in blocks:
+        if 'Text' in block.keys():
+            #if '$' in block['Text'] or 'USD' in block['Text'] or '.' in block['Text']:
+            if '.' in block['Text']:
+                amount.append(block['Text'])
+    values = []
+    digits = list(range(10))
+    digits.append('.')
+    digits = [str(dig) for dig in digits]
+    for amt in amount:
+        value = []
+        for let in amt:
+            if let not in ['U',"S",'D','$'," ",',']:
+                value.append(let)
+        try:        
+            values.append(float(''.join(value)))
+        except:
+            pass    
+    ans = max(values)
+    
+    return ans
